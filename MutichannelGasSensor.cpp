@@ -79,30 +79,27 @@ void MutichannelGasSensor::sendI2C(unsigned char dta) {
 
 
 unsigned int MutichannelGasSensor::get_addr_dta(unsigned char addr_reg) {
-START:
-    Wire.beginTransmission(i2cAddress);
-    Wire.write(addr_reg);
-    Wire.endTransmission();    // stop transmitting
-    delay(2);
+    unsigned int dta;
+    bool received = false;
+    while (!received) { //while data not received from sensor
+        Wire.beginTransmission(i2cAddress); //send address to sensor
+        Wire.write(addr_reg);
+        Wire.endTransmission();
+        delay(20);
 
-    Wire.requestFrom(i2cAddress, 2);
+        Wire.requestFrom(i2cAddress, 2); //request 2 bytes of data
+        unsigned long timeDelayStarted = millis();
+        //wait maximum of 500ms for data to be delivered
+        while(!Wire.available() && millis()-timeDelayStarted < 500) {delay(50);}
 
-    unsigned int dta = 0;
-
-    unsigned char raw[10];
-    int cnt = 0;
-
-    while (Wire.available()) {
-        raw[cnt++] = Wire.read();
+        if(Wire.available()) {
+            received = true;
+            dta = Wire.read(); //get value of first two bytes
+            dta <<= 8;
+            dta += Wire.read();
+            while (Wire.available()) {Wire.read();} //clear buffer
+        }
     }
-
-    if (cnt == 0) {
-        goto START;
-    }
-
-    dta = raw[0];
-    dta <<= 8;
-    dta += raw[1];
 
     switch (addr_reg) {
         case CH_VALUE_NH3:
@@ -141,35 +138,30 @@ START:
 }
 
 unsigned int MutichannelGasSensor::get_addr_dta(unsigned char addr_reg, unsigned char __dta) {
+    unsigned int data;
+    bool received = false;
+    while (!received) { //while data not received from sensor
+        Wire.beginTransmission(i2cAddress); //send address to sensor
+        Wire.write(addr_reg);
+        Wire.write(__dta);
+        Wire.endTransmission();
+        delay(20);
 
-START:
-    Wire.beginTransmission(i2cAddress);
-    Wire.write(addr_reg);
-    Wire.write(__dta);
-    Wire.endTransmission();    // stop transmitting
-    delay(2);
+        Wire.requestFrom(i2cAddress, 2); //request 2 bytes of data
+        unsigned long timeDelayStarted = millis();
+        //wait maximum of 500ms for data to be delivered
+        while(!Wire.available() && millis()-timeDelayStarted < 500) {delay(50);}
 
-    Wire.requestFrom(i2cAddress, 2);
-
-    unsigned int dta = 0;
-
-    unsigned char raw[10];
-    int cnt = 0;
-
-    while (Wire.available()) {
-        raw[cnt++] = Wire.read();
+        if(Wire.available()) {
+            received = true;
+            data = Wire.read(); //get value of first two bytes
+            data <<= 8;
+            data += Wire.read();
+            while (Wire.available()) {Wire.read();} //clear buffer
+        }
     }
 
-    if (cnt == 0) {
-        goto START;
-    }
-
-    dta = raw[0];
-    dta <<= 8;
-    dta += raw[1];
-
-
-    return dta;
+    return data;
 }
 
 void MutichannelGasSensor::write_i2c(unsigned char addr, unsigned char* dta, unsigned char dta_len) {
