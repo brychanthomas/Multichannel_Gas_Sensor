@@ -79,9 +79,10 @@ void MutichannelGasSensor::sendI2C(unsigned char dta) {
 
 
 unsigned int MutichannelGasSensor::get_addr_dta(unsigned char addr_reg) {
-    unsigned int dta;
+    unsigned int dta = 0;
     bool received = false;
-    while (!received) { //while data not received from sensor
+    int count = 0;
+    while (!received && count < 20) { //while data not received from sensor
         Wire.beginTransmission(i2cAddress); //send address to sensor
         Wire.write(addr_reg);
         Wire.endTransmission();
@@ -99,6 +100,7 @@ unsigned int MutichannelGasSensor::get_addr_dta(unsigned char addr_reg) {
             dta += Wire.read();
             while (Wire.available()) {Wire.read();} //clear buffer
         }
+        count++;
     }
 
     switch (addr_reg) {
@@ -138,9 +140,10 @@ unsigned int MutichannelGasSensor::get_addr_dta(unsigned char addr_reg) {
 }
 
 unsigned int MutichannelGasSensor::get_addr_dta(unsigned char addr_reg, unsigned char __dta) {
-    unsigned int data;
+    unsigned int data = 0;
     bool received = false;
-    while (!received) { //while data not received from sensor
+    int count = 0;
+    while (!received && count < 20) { //while data not received from sensor
         Wire.beginTransmission(i2cAddress); //send address to sensor
         Wire.write(addr_reg);
         Wire.write(__dta);
@@ -159,6 +162,7 @@ unsigned int MutichannelGasSensor::get_addr_dta(unsigned char addr_reg, unsigned
             data += Wire.read();
             while (Wire.available()) {Wire.read();} //clear buffer
         }
+        count++;
     }
 
     return data;
