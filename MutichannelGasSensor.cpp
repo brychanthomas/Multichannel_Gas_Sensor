@@ -54,12 +54,10 @@ void MutichannelGasSensor::begin(int address) {
 unsigned char MutichannelGasSensor::getVersion() {
     if (get_addr_dta(CMD_READ_EEPROM, ADDR_IS_SET) == 1126) {     // get version
         __version = 2;
-        _SERIAL.println("version = 2");
         return 2;
     }
 
     __version = 1;
-    _SERIAL.println("version = 1");
     return 1;
 }
 
